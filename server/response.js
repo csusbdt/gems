@@ -25,12 +25,8 @@ exports.replyError = function(res, error) {
 };
 
 exports.replyServerError = function(res) {
-//  try {
-    res.writeHead(500);
-    res.end('server error');
-//  } catch (err) {
-//    console.error('Error sending response with code 500.');
-//  }
+  res.writeHead(500);
+  res.end('server error');
 };
 
 exports.replyNotFound = function(res) {
