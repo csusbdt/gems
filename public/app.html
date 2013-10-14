@@ -1,0 +1,237 @@
+<html>
+
+<head>
+  <title>App 405</title>
+  <style>
+    #message-container, #login-screen, #menu-screen, #loading-screen {
+      display: none
+    }
+    #message-container {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      z-order: 1;
+      background-color: yellow;
+      padding: 30px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="message-container"><span id="message"></span> <button id="dismissMessage">Dismiss</button></div>
+
+<div id="loading-screen">
+  Loading ...
+</div>
+
+<div id="login-screen">
+  Username: <input id="username" type="text" size="20" /> <br>
+  Password: <input id="password" type="password" size="20" /> <br>
+  <button id="login">Login</button>
+</div>
+
+<div id="menu-screen">
+  <div>Balance: <span id="balance">?</span></div>
+  <div id="buyGem" style="cursor: pointer; text-decoration: underline">
+    Purchase gem
+  </div>
+  <div>Gems: <span id="gems">?</span></div>
+  <button id="logout">Logout</button>
+</div>
+
+<!-- boilerplate code that can be used in other projects -->
+<script>
+(function() {
+  if (window.onload) {
+    var originalOnload = window.onload;
+    window.onload = function() {
+      originalOnload();
+      app.init();
+    };
+  } else {
+    window.onload = function() {
+      app.init(); 
+    }
+  }
+})();
+
+var app = {};
+
+app.createHttpRequest = function() {
+  if (window.XMLHttpRequest) {
+    return new XMLHttpRequest(); 
+  } else if (window.ActiveXObject) {
+    try {
+      return new ActiveXObject("Msxml2.XMLHTTP");
+    } catch (e) {
+      try {
+        return new ActiveXObject("Microsoft.XMLHTTP");
+      } catch (e) {
+        alert('This page will not function correctly; try another browser.');
+      }
+    }
+  }
+};
+
+app.ajax = function(url, reqData, cb) {
+  var request = app.createHttpRequest();
+  request.onreadystatechange = function() {
+    if (request.readyState !== 4) return;
+    if (request.status !== 200) {
+      console.log('There was a problem with the request.');
+      return cb(new Error(request.status));
+    }
+    var resData = JSON.parse(request.responseText);
+    cb(null, resData);
+  };
+  request.open('POST', url);
+  request.send(JSON.stringify(reqData));
+};
+</script>
+
+<!-- app state caching through localStorage -->
+<script>
+app.readLocalStorage = function() {
+  app.doc = JSON.parse(localStorage.getItem('doc'));
+  if (app.doc) {
+    app.username = app.doc._id;
+    app.password = app.doc.pw;
+  }
+};
+
+app.writeLocalStorage = function() {
+  if (app.doc) {
+    localStorage.setItem('doc', JSON.stringify(app.doc)); 
+  } else {
+    localStorage.removeItem('doc');
+  }
+};
+</script>
+
+<!-- messages to user -->
+<script>
+app.displayMessage = function(message) {
+  document.getElementById("message").innerHTML = message;
+  document.getElementById("message-container").style.display = 'block';
+};
+
+app.dismissMessage = function() {
+  document.getElementById("message-container").style.display = 'none';
+};
+</script>
+
+<!-- screen transition -->
+<script>
+app.setScreen = function(id) {
+  if (app.screen === id) return;
+  if (app.screen) {
+    document.getElementById(app.screen).style.display = 'none';
+  }
+  document.getElementById(id).style.display = 'block';
+  app.screen = id;
+};
+</script>
+
+<!-- login screen -->
+<script>
+app.displayLoginScreen = function() {
+  document.getElementById('username').value = app.username
+  document.getElementById('password').value = app.password;
+  app.setScreen('login-screen');
+};
+
+app.login = function(cb) {
+  if (app.screen !== 'login-screen') return alert('ERROR: not in login screen.');
+  app.username = document.getElementById('username').value;
+  app.password = document.getElementById('password').value;
+  app.setScreen('loading-screen');
+  app.ajax('get-doc', { _id: app.username, pw: app.password }, function(err, resData) {
+    if (err) {
+      app.displayMessage('error');
+      app.displayLoginScreen();
+    } else if (resData.error) {
+      app.displayMessage(resData.error);
+      app.displayLoginScreen();
+    } else if (resData.login) {
+      app.displayMessage('Invalid username or password.');
+      app.displayLoginScreen();
+    } else {
+      app.doc = resData.doc;
+      app.writeLocalStorage();
+      app.displayMenuScreen();
+    }
+  });
+};
+</script>
+
+<!-- menu screen -->
+<script>
+app.displayMenuScreen = function() {
+  document.getElementById("balance").innerHTML = app.doc.balance;
+  document.getElementById("gems").innerHTML = app.doc.gems;
+  app.setScreen('menu-screen');
+};
+
+app.buyGem = function() {
+  if (app.screen !== 'menu-screen') return alert('ERROR: not in menu screen.');
+  app.setScreen('loading-screen');
+  app.ajax('buy-gem', {_id: app.doc._id, _rev: app.doc._rev, pw: app.doc.pw}, function(err, resData) {
+    if (err) {
+      app.displayMessage('error');
+      app.displayMenuScreen();
+    } else if (resData.error) {
+      app.displayMessage(resData.error);
+      app.displayMenuScreen();
+    } else if (resData.login) {
+      app.displayLoginScreen();
+    } else if (resData.old) {
+      app.doc = resData.doc;
+      app.displayMessage('Please try again.');
+      app.displayMenuScreen();
+    } else if (resData.insufficientBalance) {
+      app.displayMessage('Insufficient balance.');
+      app.displayMenuScreen();
+    } else {
+      app.doc = resData.doc;
+      app.displayMessage('Gem purchased.');
+      app.displayMenuScreen();
+    }
+  });
+};
+</script>
+
+<!-- logout -->
+<script>
+app.logout = function() {
+  app.username = '';
+  app.password = '';
+  delete app.doc;
+  app.writeLocalStorage();
+  app.displayLoginScreen();
+};
+</script>
+
+<!-- app init -->
+<script>
+app.init = function() {
+  // Register button click handlers.
+  document.getElementById('buyGem').onclick = app.buyGem;
+  document.getElementById('dismissMessage').onclick = app.dismissMessage;
+  document.getElementById('login').onclick = app.login;
+  document.getElementById('logout').onclick = app.logout;
+
+  app.readLocalStorage();
+  app.setScreen('login-screen');
+  if (app.username) {
+    document.getElementById('username').value = app.username;
+    document.getElementById('password').value = app.password;
+    app.login();
+  }
+};
+</script>
+
+</body>
+
+</html>
+
