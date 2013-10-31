@@ -19,7 +19,7 @@
 
 <body>
 
-<div id="message-container"><span id="message"></span> <button id="dismissMessage">Dismiss</button></div>
+<div id="message-container"><span id="message-text"></span> <button id="message-dismiss-button">Dismiss</button></div>
 
 <div id="loading-screen">
   Loading ...
@@ -112,8 +112,9 @@ app.writeLocalStorage = function() {
 <!-- messages to user -->
 <script>
 app.displayMessage = function(message) {
-  document.getElementById("message").innerHTML = message;
+  document.getElementById("message-text").innerHTML = message;
   document.getElementById("message-container").style.display = 'block';
+  document.getElementById("message-dismiss-button").focus();
 };
 
 app.dismissMessage = function() {
@@ -217,7 +218,7 @@ app.logout = function() {
 app.init = function() {
   // Register button click handlers.
   document.getElementById('buyGem').onclick = app.buyGem;
-  document.getElementById('dismissMessage').onclick = app.dismissMessage;
+  document.getElementById('message-dismiss-button').onclick = app.dismissMessage;
   document.getElementById('login').onclick = app.login;
   document.getElementById('logout').onclick = app.logout;
 

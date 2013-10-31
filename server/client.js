@@ -11,7 +11,7 @@ exports.handle = function(req, res) {
 };
 
 exports.init = function(cb) {
-  require('fs').readFile('public/app.html', function(err, data) {
+  require('fs').readFile('client/app.html', function(err, data) {
     if (err) throw err;
     body = data;
     cb();

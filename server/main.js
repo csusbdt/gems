@@ -1,6 +1,6 @@
 var http = require('http');
 var domain = require('domain');
-var root = require('./root');
+var client = require('./client');
 var get_doc = require('./get_doc');
 var buy_gem = require('./buy_gem');
 var replyNotFound = require('./response').replyNotFound;
@@ -9,7 +9,7 @@ var replyError = require('./response').replyError;
 function handleRequest(req, res) {
   console.log('Handling request for ' + req.url);
   if (req.url === '/') {
-    root.handle(req, res);
+    client.handle(req, res);
   } else if (req.url === '/get-doc') {
     get_doc.handle(req, res);
   } else if (req.url === '/buy-gem') {
@@ -30,7 +30,8 @@ server.on('request', function(req, res) {
   d.run(function() { handleRequest(req, res); });
 });
 
-root.init(function() {
+client.init(function() {
   server.listen(5000);
+  console.log('Server started.');
 });
 
