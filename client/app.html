@@ -142,7 +142,7 @@ app.displayLoginScreen = function() {
   app.setScreen('login-screen');
 };
 
-app.login = function(cb) {
+app.login = function() {
   if (app.screen !== 'login-screen') return alert('ERROR: not in login screen.');
   app.username = document.getElementById('username').value;
   app.password = document.getElementById('password').value;
@@ -188,6 +188,7 @@ app.buyGem = function() {
       app.displayLoginScreen();
     } else if (resData.old) {
       app.doc = resData.doc;
+      app.writeLocalStorage();
       app.displayMessage('Please try again.');
       app.displayMenuScreen();
     } else if (resData.insufficientBalance) {
@@ -195,6 +196,7 @@ app.buyGem = function() {
       app.displayMenuScreen();
     } else {
       app.doc = resData.doc;
+      app.writeLocalStorage();
       app.displayMessage('Gem purchased.');
       app.displayMenuScreen();
     }
