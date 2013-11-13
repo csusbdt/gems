@@ -1,6 +1,9 @@
 <html>
 
 <head>
+  <!--[if lt IE 8]>
+    <meta http-equiv="refresh" content="0;URL=http://theie7countdown.com/">
+  <![endif]-->
   <meta charset="UTF-8">
   <title>App 405</title>
   <style>
@@ -19,6 +22,7 @@
       padding: 30px;
     }
   </style>
+
 </head>
 
 <body>
@@ -44,6 +48,11 @@
 
 <!-- boilerplate code that can be used in other projects -->
 <script>
+var app = {}; // global object to hold all application data and logic
+
+// The following code schedules app.init to be called
+// after initialization of the DOM. This code works in
+// ie 8 and later (and maybe earlier than ie 7 as well).
 (function() {
   if (window.onload) {
     var originalOnload = window.onload;
@@ -57,8 +66,6 @@
     }
   }
 })();
-
-var app = {};
 
 app.createHttpRequest = function() {
   if (window.XMLHttpRequest) {
@@ -181,25 +188,25 @@ app.buyGem = function() {
   app.setScreen('loading-screen');
   app.ajax('buy-gem', {_id: app.doc._id, _rev: app.doc._rev, pw: app.doc.pw}, function(err, resData) {
     if (err) {
-      app.displayMessage('error');
+      app.displayMessageDialog('error');
       app.displayMenuScreen();
     } else if (resData.error) {
-      app.displayMessage(resData.error);
+      app.displayMessageDialog(resData.error);
       app.displayMenuScreen();
     } else if (resData.login) {
       app.displayLoginScreen();
     } else if (resData.old) {
       app.doc = resData.doc;
       app.writeLocalStorage();
-      app.displayMessage('Please try again.');
+      app.displayMessageDialog('Please try again.');
       app.displayMenuScreen();
     } else if (resData.insufficientBalance) {
-      app.displayMessage('Insufficient balance.');
+      app.displayMessageDialog('Insufficient balance.');
       app.displayMenuScreen();
     } else {
       app.doc = resData.doc;
       app.writeLocalStorage();
-      app.displayMessage('Gem purchased.');
+      app.displayMessageDialog('Gem purchased.');
       app.displayMenuScreen();
     }
   });
