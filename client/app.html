@@ -46,27 +46,33 @@
   <button id="menu-logout-btn">Logout</button>
 </div>
 
-<!-- boilerplate code that can be used in other projects -->
 <script>
-var app = { screens: {} }; // global object to hold all application data and logic
+// create one global object to hold all application data and logic
+var app = { 
+  util: {},      // utility functions
+  screens: {},   // application screens
+  Screen: null,  // screen constructor
+  cache: {},     // interactions with local storage
+  onload: null   // called after DOM created
+};
 
-// The following code schedules app.init to be called
-// after initialization of the DOM. 
+// Schedules app.onload to be called after initialization of the DOM. 
 (function() {
   if (window.onload) {
     var originalOnload = window.onload;
     window.onload = function() {
       originalOnload();
-      app.init();
+      app.onload();
     };
   } else {
     window.onload = function() {
-      app.init(); 
+      app.onload(); 
     }
   }
 })();
 
-app.createHttpRequest = function() {
+// generic function to create http request object 
+app.util.createHttpRequest = function() {
   if (window.XMLHttpRequest) {
     return new XMLHttpRequest(); 
   } else if (window.ActiveXObject) {
@@ -82,8 +88,9 @@ app.createHttpRequest = function() {
   }
 };
 
-app.ajax = function(url, reqData, cb) {
-  var request = app.createHttpRequest();
+// function used for all communication with server
+app.util.ajax = function(url, reqData, cb) {
+  var request = app.util.createHttpRequest();
   request.onreadystatechange = function() {
     if (request.readyState !== 4) return;
     if (request.status !== 200) {
@@ -96,36 +103,30 @@ app.ajax = function(url, reqData, cb) {
   request.open('POST', url);
   request.send(JSON.stringify(reqData));
 };
-</script>
 
-<!-- app state caching through localStorage -->
-<script>
-app.readLocalStorage = function() {
-  app.doc = JSON.parse(localStorage.getItem('doc'));
-  if (app.doc) {
-    app.username = app.doc._id;
-    app.password = app.doc.pw;
-  }
+// app state caching through localStorage 
+app.cache.read = function() {
+  app.cache.doc = JSON.parse(localStorage.getItem('doc'));
 };
 
-app.writeLocalStorage = function() {
-  if (app.doc) {
-    localStorage.setItem('doc', JSON.stringify(app.doc)); 
-  } else {
-    localStorage.removeItem('doc');
-  }
+app.cache.write = function() {
+  localStorage.setItem('doc', JSON.stringify(app.cache.doc));
 };
-</script>
 
-<!-- messages to user -->
-<script>
-app.displayMessageDialog = function(message) {
+app.cache.clear = function() {
+  delete app.cache.doc;
+  localStorage.removeItem('doc');
+};
+
+// message dialog
+
+app.util.displayMessageDialog = function(message) {
   document.getElementById("message-dialog").style.display = 'block';
   document.getElementById("message-text").innerHTML = message;
   document.getElementById("message-dismiss-btn").focus();
 };
 
-app.dismissMessage = function() {
+app.util.dismissMessage = function() {
   document.getElementById("message-dialog").style.display = 'none';
 };
 </script>
@@ -134,120 +135,142 @@ app.dismissMessage = function() {
 <script>
 app.Screen = function(name) {
   this.name = name;
-  this.div = document.getElementById(name + '-screen');
 };
 
+app.Screen.currentScreen = null;
+
+app.Screen.prototype.getDiv = function() {
+  return document.getElementById(this.name + '-screen');
+};
+
+// The show function should only be called by activate.
 app.Screen.prototype.show = function() {
-  if (app.currentScreen) app.currentScreen.div.style.display = 'none';
-  this.div.style.display = 'block';
-  app.currentScreen = this;
+  if (Screen.currentScreen) Screen.currentScreen.getDiv().style.display = 'none';
+  this.getDiv().style.display = 'block';
+  Screen.currentScreen = this;
 };
 </script>
 
-<!-- app.init -->
+<!-- loading screen -->
 <script>
-app.init = function() {
-  // initialize dialog
-  document.getElementById('message-dismiss-btn').onclick = app.dismissMessage;
+app.screens.loading = new app.Screen('loading');
 
-  // loading screen
-  app.screens.loading = new app.Screen('loading');
+app.screens.loading.onload = function() {
+};
 
-  app.screens.loading.activate = function() {
-    app.screens.loading.show();
-  };
+app.screens.loading.activate = function() {
+  app.screens.loading.show();
+};
+</script>
 
-  // login screen
+<!-- login screen -->
+<script>
   app.screens.login = new app.Screen('login');
 
-  app.screens.login.usernameBox = document.getElementById('login-username-box');
-  app.screens.login.passwordBox = document.getElementById('login-password-box');
-  app.screens.login.submitButton = document.getElementById('login-submit-btn');
+  app.screens.login.onload = function() {
+    app.screens.login.usernameBox = document.getElementById('login-username-box');
+    app.screens.login.passwordBox = document.getElementById('login-password-box');
+    app.screens.login.submitButton = document.getElementById('login-submit-btn');
+    app.screens.login.submitButton.onclick = app.screens.login.submit;
+  }
 
   app.screens.login.activate = function() {
-    if (app.username !== undefined) {
-      app.screens.login.usernameBox.value = app.username;
-      app.screens.login.passwordBox.value = app.password;
-    }
     app.screens.login.show();
   };
 
-  app.screens.login.submitButton.onclick = function() {
+  app.screens.login.submit = function() {
     app.screens.loading.activate();
-    app.username = app.screens.login.usernameBox.value;
-    app.password = app.screens.login.passwordBox.value;
-    app.ajax('get-doc', { _id: app.username, pw: app.password }, function(err, resData) {
+    var username = app.screens.login.usernameBox.value;
+    var password = app.screens.login.passwordBox.value;
+    app.util.ajax('get-doc', { _id: username, pw: password }, function(err, resData) {
       if (err) {
         app.screens.login.activate();
-        app.displayMessageDialog('error');
+        app.util.displayMessageDialog('error');
       } else if (resData.error) {
         app.screens.login.activate();
-        app.displayMessageDialog(resData.error);
+        app.util.displayMessageDialog(resData.error);
       } else if (resData.login) {
         app.screens.login.activate();
-        app.displayMessageDialog('Invalid username or password.');
+        app.util.displayMessageDialog('Invalid username or password.');
       } else {
-        app.doc = resData.doc;
-        app.writeLocalStorage();
+        app.cache.doc = resData.doc;
+        app.cache.write();
         app.screens.menu.activate();
       }
     });
   };
+</script>
 
-  // menu screen
+<!-- menu screen -->
+<script>
   app.screens.menu = new app.Screen('menu');
 
-  app.screens.menu.balanceText = document.getElementById('menu-balance-text');
-  app.screens.menu.gemsText = document.getElementById('menu-gems-text');
-  app.screens.menu.buyGemButton = document.getElementById('menu-buy-gem-btn');
-  app.screens.menu.logoutButton = document.getElementById('menu-logout-btn');
+  app.screens.menu.onload = function() {
+    app.screens.menu.balanceText = document.getElementById('menu-balance-text');
+    app.screens.menu.gemsText = document.getElementById('menu-gems-text');
+    document.getElementById('menu-buy-gem-btn').onclick = app.screens.menu.buyGem;
+    document.getElementById('menu-logout-btn').onclick = app.screens.menu.logout;
+  }
 
   app.screens.menu.activate = function() {
-    app.screens.menu.balanceText.innerHTML = app.doc.balance;
-    app.screens.menu.gemsText.innerHTML = app.doc.gems;
+    app.screens.menu.balanceText.innerHTML = app.cache.doc.balance;
+    app.screens.menu.gemsText.innerHTML = app.cache.doc.gems;
     app.screens.menu.show();
   };
 
-  app.screens.menu.buyGemButton.onclick = function() {
+  app.screens.menu.buyGem = function() {
     app.screens.loading.activate();
-    app.ajax('buy-gem', {_id: app.doc._id, _rev: app.doc._rev, pw: app.doc.pw}, function(err, resData) {
+    app.util.ajax('buy-gem', {_id: app.cache.doc._id, _rev: app.cache.doc._rev, pw: app.cache.doc.pw}, function(err, resData) {
       if (err) {
         app.screens.menu.activate();
-        app.displayMessageDialog('error');
+        app.util.displayMessageDialog('error');
       } else if (resData.error) {
         app.screens.menu.activate();
-        app.displayMessageDialog(resData.error);
+        app.util.displayMessageDialog(resData.error);
       } else if (resData.login) {
         app.screens.login.activate();
       } else if (resData.old) {
-        app.doc = resData.doc;
-        app.writeLocalStorage();
+        app.cache.doc = resData.doc;
+        app.cache.write();
         app.screens.menu.activate();
-        app.displayMessageDialog('Please try again.');
+        app.util.displayMessageDialog('Please try again.');
       } else if (resData.insufficientBalance) {
         app.screens.menu.activate();
-        app.displayMessageDialog('Insufficient balance.');
+        app.util.displayMessageDialog('Insufficient balance.');
       } else {
-        app.doc = resData.doc;
-        app.writeLocalStorage();
+        app.cache.doc = resData.doc;
+        app.cache.write();
         app.screens.menu.activate();
-        app.displayMessageDialog('Gem purchased.');
+        app.util.displayMessageDialog('Gem purchased.');
       }
     });
   };
 
-  app.screens.menu.logoutButton.onclick = function() {
-    app.username = '';
-    app.password = '';
-    delete app.doc;
-    app.writeLocalStorage();
+  app.screens.menu.logout = function() {
+    app.screens.login.usernameBox.value = '';
+    app.screens.login.passwordBox.value = '';
+    app.cache.clear();
     app.screens.login.activate();
   };
+</script>
 
-  app.readLocalStorage();
-  if (app.username) {
-    app.screens.login.activate();
-    app.screens.login.submitButton.click();
+<!-- onload -->
+<script>
+app.onload = function() {
+  // initialize dialog
+  document.getElementById('message-dismiss-btn').onclick = app.util.dismissMessage;
+
+  // initialize screens
+  app.screens.loading.onload();
+  app.screens.login.onload();
+  app.screens.menu.onload();
+
+  // try to login user
+  app.cache.read();
+  if (app.cache.doc) {
+    app.screens.login.usernameBox.value = app.cache.doc._id;
+    app.screens.login.passwordBox.value = app.cache.doc.pw;
+    app.screens.login.submit();
   } else {
     app.screens.login.activate();
   }
