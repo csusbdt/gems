@@ -4,10 +4,13 @@
   <meta charset="UTF-8">
   <title>App 405</title>
   <style>
-    #message-container, #login-screen, #menu-screen, #loading-screen {
+    #message-dialog, 
+    #login-screen, 
+    #menu-screen, 
+    #loading-screen {
       display: none
     }
-    #message-container {
+    #message-dialog {
       position: absolute;
       left: 20px;
       top: 20px;
@@ -20,25 +23,23 @@
 
 <body>
 
-<div id="message-container"><span id="message-text"></span> <button id="message-dismiss-button">Dismiss</button></div>
+<div id="message-dialog"><span id="message-text"></span> <button id="message-dismiss-btn">Dismiss</button></div>
 
 <div id="loading-screen">
   Loading ...
 </div>
 
 <div id="login-screen">
-  Username: <input id="username" type="text" size="20" /> <br>
-  Password: <input id="password" type="password" size="20" /> <br>
-  <button id="login">Login</button>
+  Username: <input id="login-username-box" type="text" size="20" /> <br>
+  Password: <input id="login-password-box" type="password" size="20" /> <br>
+  <button id="login-btn">Login</button>
 </div>
 
 <div id="menu-screen">
-  <div>Balance: <span id="balance">?</span></div>
-  <div id="buyGem" style="cursor: pointer; text-decoration: underline">
-    Purchase gem
-  </div>
-  <div>Gems: <span id="gems">?</span></div>
-  <button id="logout">Logout</button>
+  <div>Balance: <span id="menu-balance-text">?</span></div>
+  <div>Gems: <span id="menu-gems-text">?</span></div>
+  <button id="menu-buy-gem-btn">Buy gem</button>
+  <button id="menu-logout-btn">Logout</button>
 </div>
 
 <!-- boilerplate code that can be used in other projects -->
@@ -112,14 +113,14 @@ app.writeLocalStorage = function() {
 
 <!-- messages to user -->
 <script>
-app.displayMessage = function(message) {
+app.displayMessageDialog = function(message) {
+  document.getElementById("message-dialog").style.display = 'block';
   document.getElementById("message-text").innerHTML = message;
-  document.getElementById("message-container").style.display = 'block';
-  document.getElementById("message-dismiss-button").focus();
+  document.getElementById("message-dismiss-btn").focus();
 };
 
 app.dismissMessage = function() {
-  document.getElementById("message-container").style.display = 'none';
+  document.getElementById("message-dialog").style.display = 'none';
 };
 </script>
 
@@ -138,25 +139,25 @@ app.setScreen = function(id) {
 <!-- login screen -->
 <script>
 app.displayLoginScreen = function() {
-  document.getElementById('username').value = app.username
-  document.getElementById('password').value = app.password;
+  document.getElementById('login-username-box').value = app.username
+  document.getElementById('login-password-box').value = app.password;
   app.setScreen('login-screen');
 };
 
 app.login = function() {
   if (app.screen !== 'login-screen') return alert('ERROR: not in login screen.');
-  app.username = document.getElementById('username').value;
-  app.password = document.getElementById('password').value;
+  app.username = document.getElementById('login-username-box').value;
+  app.password = document.getElementById('login-password-box').value;
   app.setScreen('loading-screen');
   app.ajax('get-doc', { _id: app.username, pw: app.password }, function(err, resData) {
     if (err) {
-      app.displayMessage('error');
+      app.displayMessageDialog('error');
       app.displayLoginScreen();
     } else if (resData.error) {
-      app.displayMessage(resData.error);
+      app.displayMessageDialog(resData.error);
       app.displayLoginScreen();
     } else if (resData.login) {
-      app.displayMessage('Invalid username or password.');
+      app.displayMessageDialog('Invalid username or password.');
       app.displayLoginScreen();
     } else {
       app.doc = resData.doc;
@@ -170,8 +171,8 @@ app.login = function() {
 <!-- menu screen -->
 <script>
 app.displayMenuScreen = function() {
-  document.getElementById("balance").innerHTML = app.doc.balance;
-  document.getElementById("gems").innerHTML = app.doc.gems;
+  document.getElementById("menu-balance-text").innerHTML = app.doc.balance;
+  document.getElementById("menu-gems-text").innerHTML = app.doc.gems;
   app.setScreen('menu-screen');
 };
 
@@ -220,16 +221,16 @@ app.logout = function() {
 <script>
 app.init = function() {
   // Register button click handlers.
-  document.getElementById('buyGem').onclick = app.buyGem;
-  document.getElementById('message-dismiss-button').onclick = app.dismissMessage;
-  document.getElementById('login').onclick = app.login;
-  document.getElementById('logout').onclick = app.logout;
+  document.getElementById('message-dismiss-btn').onclick = app.dismissMessage;
+  document.getElementById('menu-buy-gem-btn').onclick = app.buyGem;
+  document.getElementById('login-btn').onclick = app.login;
+  document.getElementById('menu-logout-btn').onclick = app.logout;
 
   app.readLocalStorage();
   app.setScreen('login-screen');
   if (app.username) {
-    document.getElementById('username').value = app.username;
-    document.getElementById('password').value = app.password;
+    document.getElementById('login-username-box').value = app.username;
+    document.getElementById('login-password-box').value = app.password;
     app.login();
   }
 };
