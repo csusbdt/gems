@@ -36,7 +36,7 @@
 <div id="login-screen">
   Username: <input id="login-username-box" type="text" size="20" /> <br>
   Password: <input id="login-password-box" type="password" size="20" /> <br>
-  <button id="login-btn">Login</button>
+  <button id="login-submit-btn">Login</button>
 </div>
 
 <div id="menu-screen">
@@ -48,11 +48,10 @@
 
 <!-- boilerplate code that can be used in other projects -->
 <script>
-var app = {}; // global object to hold all application data and logic
+var app = { screens: {} }; // global object to hold all application data and logic
 
 // The following code schedules app.init to be called
-// after initialization of the DOM. This code works in
-// ie 8 and later (and maybe earlier than ie 7 as well).
+// after initialization of the DOM. 
 (function() {
   if (window.onload) {
     var originalOnload = window.onload;
@@ -131,114 +130,126 @@ app.dismissMessage = function() {
 };
 </script>
 
-<!-- screen transition -->
+<!-- Screen constructor -->
 <script>
-app.setScreen = function(id) {
-  if (app.screen === id) return;
-  if (app.screen) {
-    document.getElementById(app.screen).style.display = 'none';
-  }
-  document.getElementById(id).style.display = 'block';
-  app.screen = id;
+app.Screen = function(name) {
+  this.name = name;
+  this.div = document.getElementById(name + '-screen');
+};
+
+app.Screen.prototype.show = function() {
+  if (app.currentScreen) app.currentScreen.div.style.display = 'none';
+  this.div.style.display = 'block';
+  app.currentScreen = this;
 };
 </script>
 
-<!-- login screen -->
-<script>
-app.displayLoginScreen = function() {
-  document.getElementById('login-username-box').value = app.username
-  document.getElementById('login-password-box').value = app.password;
-  app.setScreen('login-screen');
-};
-
-app.login = function() {
-  if (app.screen !== 'login-screen') return alert('ERROR: not in login screen.');
-  app.username = document.getElementById('login-username-box').value;
-  app.password = document.getElementById('login-password-box').value;
-  app.setScreen('loading-screen');
-  app.ajax('get-doc', { _id: app.username, pw: app.password }, function(err, resData) {
-    if (err) {
-      app.displayMessageDialog('error');
-      app.displayLoginScreen();
-    } else if (resData.error) {
-      app.displayMessageDialog(resData.error);
-      app.displayLoginScreen();
-    } else if (resData.login) {
-      app.displayMessageDialog('Invalid username or password.');
-      app.displayLoginScreen();
-    } else {
-      app.doc = resData.doc;
-      app.writeLocalStorage();
-      app.displayMenuScreen();
-    }
-  });
-};
-</script>
-
-<!-- menu screen -->
-<script>
-app.displayMenuScreen = function() {
-  document.getElementById("menu-balance-text").innerHTML = app.doc.balance;
-  document.getElementById("menu-gems-text").innerHTML = app.doc.gems;
-  app.setScreen('menu-screen');
-};
-
-app.buyGem = function() {
-  if (app.screen !== 'menu-screen') return alert('ERROR: not in menu screen.');
-  app.setScreen('loading-screen');
-  app.ajax('buy-gem', {_id: app.doc._id, _rev: app.doc._rev, pw: app.doc.pw}, function(err, resData) {
-    if (err) {
-      app.displayMessageDialog('error');
-      app.displayMenuScreen();
-    } else if (resData.error) {
-      app.displayMessageDialog(resData.error);
-      app.displayMenuScreen();
-    } else if (resData.login) {
-      app.displayLoginScreen();
-    } else if (resData.old) {
-      app.doc = resData.doc;
-      app.writeLocalStorage();
-      app.displayMessageDialog('Please try again.');
-      app.displayMenuScreen();
-    } else if (resData.insufficientBalance) {
-      app.displayMessageDialog('Insufficient balance.');
-      app.displayMenuScreen();
-    } else {
-      app.doc = resData.doc;
-      app.writeLocalStorage();
-      app.displayMessageDialog('Gem purchased.');
-      app.displayMenuScreen();
-    }
-  });
-};
-</script>
-
-<!-- logout -->
-<script>
-app.logout = function() {
-  app.username = '';
-  app.password = '';
-  delete app.doc;
-  app.writeLocalStorage();
-  app.displayLoginScreen();
-};
-</script>
-
-<!-- app init -->
+<!-- app.init -->
 <script>
 app.init = function() {
-  // Register button click handlers.
+  // initialize dialog
   document.getElementById('message-dismiss-btn').onclick = app.dismissMessage;
-  document.getElementById('menu-buy-gem-btn').onclick = app.buyGem;
-  document.getElementById('login-btn').onclick = app.login;
-  document.getElementById('menu-logout-btn').onclick = app.logout;
+
+  // loading screen
+  app.screens.loading = new app.Screen('loading');
+
+  app.screens.loading.activate = function() {
+    app.screens.loading.show();
+  };
+
+  // login screen
+  app.screens.login = new app.Screen('login');
+
+  app.screens.login.usernameBox = document.getElementById('login-username-box');
+  app.screens.login.passwordBox = document.getElementById('login-password-box');
+  app.screens.login.submitButton = document.getElementById('login-submit-btn');
+
+  app.screens.login.activate = function() {
+    if (app.username !== undefined) {
+      app.screens.login.usernameBox.value = app.username;
+      app.screens.login.passwordBox.value = app.password;
+    }
+    app.screens.login.show();
+  };
+
+  app.screens.login.submitButton.onclick = function() {
+    app.screens.loading.activate();
+    app.username = app.screens.login.usernameBox.value;
+    app.password = app.screens.login.passwordBox.value;
+    app.ajax('get-doc', { _id: app.username, pw: app.password }, function(err, resData) {
+      if (err) {
+        app.screens.login.activate();
+        app.displayMessageDialog('error');
+      } else if (resData.error) {
+        app.screens.login.activate();
+        app.displayMessageDialog(resData.error);
+      } else if (resData.login) {
+        app.screens.login.activate();
+        app.displayMessageDialog('Invalid username or password.');
+      } else {
+        app.doc = resData.doc;
+        app.writeLocalStorage();
+        app.screens.menu.activate();
+      }
+    });
+  };
+
+  // menu screen
+  app.screens.menu = new app.Screen('menu');
+
+  app.screens.menu.balanceText = document.getElementById('menu-balance-text');
+  app.screens.menu.gemsText = document.getElementById('menu-gems-text');
+  app.screens.menu.buyGemButton = document.getElementById('menu-buy-gem-btn');
+  app.screens.menu.logoutButton = document.getElementById('menu-logout-btn');
+
+  app.screens.menu.activate = function() {
+    app.screens.menu.balanceText.innerHTML = app.doc.balance;
+    app.screens.menu.gemsText.innerHTML = app.doc.gems;
+    app.screens.menu.show();
+  };
+
+  app.screens.menu.buyGemButton.onclick = function() {
+    app.screens.loading.activate();
+    app.ajax('buy-gem', {_id: app.doc._id, _rev: app.doc._rev, pw: app.doc.pw}, function(err, resData) {
+      if (err) {
+        app.screens.menu.activate();
+        app.displayMessageDialog('error');
+      } else if (resData.error) {
+        app.screens.menu.activate();
+        app.displayMessageDialog(resData.error);
+      } else if (resData.login) {
+        app.screens.login.activate();
+      } else if (resData.old) {
+        app.doc = resData.doc;
+        app.writeLocalStorage();
+        app.screens.menu.activate();
+        app.displayMessageDialog('Please try again.');
+      } else if (resData.insufficientBalance) {
+        app.screens.menu.activate();
+        app.displayMessageDialog('Insufficient balance.');
+      } else {
+        app.doc = resData.doc;
+        app.writeLocalStorage();
+        app.screens.menu.activate();
+        app.displayMessageDialog('Gem purchased.');
+      }
+    });
+  };
+
+  app.screens.menu.logoutButton.onclick = function() {
+    app.username = '';
+    app.password = '';
+    delete app.doc;
+    app.writeLocalStorage();
+    app.screens.login.activate();
+  };
 
   app.readLocalStorage();
-  app.setScreen('login-screen');
   if (app.username) {
-    document.getElementById('login-username-box').value = app.username;
-    document.getElementById('login-password-box').value = app.password;
-    app.login();
+    app.screens.login.activate();
+    app.screens.login.submitButton.click();
+  } else {
+    app.screens.login.activate();
   }
 };
 </script>

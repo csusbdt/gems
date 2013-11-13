@@ -51,7 +51,7 @@ exports.getDoc = function(_id, cb) {
       hostname: 'localhost',
       auth: 'admin:1234',
       port: 5984,
-      path: '/gems/' + _id, 
+      path: '/users/' + _id, 
       method: 'GET'
   };
   send(options, null, function(err, doc) {
@@ -65,7 +65,7 @@ exports.updateDoc = function(doc, cb) {
       hostname: 'localhost',
       auth: 'admin:1234',
       port: 5984,
-      path: '/gems/' + doc._id, 
+      path: '/users/' + doc._id, 
       method: 'PUT'
   };
   send(options, doc, function(err, result) {
