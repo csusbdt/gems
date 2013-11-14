@@ -5,7 +5,7 @@
     <meta http-equiv="refresh" content="0;URL=http://theie7countdown.com/">
   <![endif]-->
   <meta charset="UTF-8">
-  <title>App 405</title>
+  <title>Gems</title>
   <style>
     #message-dialog, 
     #login-screen, 
@@ -27,7 +27,10 @@
 
 <body>
 
-<div id="message-dialog"><span id="message-text"></span> <button id="message-dismiss-btn">Dismiss</button></div>
+<div id="message-dialog">
+  <span id="message-text"></span>
+  <button id="message-dismiss-btn">Dismiss</button>
+</div>
 
 <div id="loading-screen">
   Loading ...
@@ -50,6 +53,7 @@
 // create one global object to hold all application data and logic
 var app = { 
   util: {},      // utility functions
+  dialog: {},    // message dialog 
   screens: {},   // application screens
   Screen: null,  // screen constructor
   cache: {},     // interactions with local storage
@@ -120,13 +124,13 @@ app.cache.clear = function() {
 
 // message dialog
 
-app.util.displayMessageDialog = function(message) {
+app.dialog.display= function(message) {
   document.getElementById("message-dialog").style.display = 'block';
   document.getElementById("message-text").innerHTML = message;
   document.getElementById("message-dismiss-btn").focus();
 };
 
-app.util.dismissMessage = function() {
+app.dialog.dismiss = function() {
   document.getElementById("message-dialog").style.display = 'none';
 };
 </script>
@@ -155,8 +159,7 @@ app.Screen.prototype.show = function() {
 <script>
 app.screens.loading = new app.Screen('loading');
 
-app.screens.loading.onload = function() {
-};
+app.screens.loading.onload = function() { };
 
 app.screens.loading.activate = function() {
   app.screens.loading.show();
@@ -172,7 +175,7 @@ app.screens.loading.activate = function() {
     app.screens.login.passwordBox = document.getElementById('login-password-box');
     app.screens.login.submitButton = document.getElementById('login-submit-btn');
     app.screens.login.submitButton.onclick = app.screens.login.submit;
-  }
+  };
 
   app.screens.login.activate = function() {
     app.screens.login.show();
@@ -185,13 +188,13 @@ app.screens.loading.activate = function() {
     app.util.ajax('get-doc', { _id: username, pw: password }, function(err, resData) {
       if (err) {
         app.screens.login.activate();
-        app.util.displayMessageDialog('error');
+        app.dialog.display('error');
       } else if (resData.error) {
         app.screens.login.activate();
-        app.util.displayMessageDialog(resData.error);
+        app.dialog.display(resData.error);
       } else if (resData.login) {
         app.screens.login.activate();
-        app.util.displayMessageDialog('Invalid username or password.');
+        app.dialog.display('Invalid username or password.');
       } else {
         app.cache.doc = resData.doc;
         app.cache.write();
@@ -223,25 +226,25 @@ app.screens.loading.activate = function() {
     app.util.ajax('buy-gem', {_id: app.cache.doc._id, _rev: app.cache.doc._rev, pw: app.cache.doc.pw}, function(err, resData) {
       if (err) {
         app.screens.menu.activate();
-        app.util.displayMessageDialog('error');
+        app.dialog.display('error');
       } else if (resData.error) {
         app.screens.menu.activate();
-        app.util.displayMessageDialog(resData.error);
+        app.dialog.display(resData.error);
       } else if (resData.login) {
         app.screens.login.activate();
       } else if (resData.old) {
         app.cache.doc = resData.doc;
         app.cache.write();
         app.screens.menu.activate();
-        app.util.displayMessageDialog('Please try again.');
+        app.dialog.display('Please try again.');
       } else if (resData.insufficientBalance) {
         app.screens.menu.activate();
-        app.util.displayMessageDialog('Insufficient balance.');
+        app.dialog.display('Insufficient balance.');
       } else {
         app.cache.doc = resData.doc;
         app.cache.write();
         app.screens.menu.activate();
-        app.util.displayMessageDialog('Gem purchased.');
+        app.dialog.display('Gem purchased.');
       }
     });
   };
@@ -258,7 +261,7 @@ app.screens.loading.activate = function() {
 <script>
 app.onload = function() {
   // initialize dialog
-  document.getElementById('message-dismiss-btn').onclick = app.util.dismissMessage;
+  document.getElementById('message-dismiss-btn').onclick = app.dialog.dismiss;
 
   // initialize screens
   app.screens.loading.onload();
