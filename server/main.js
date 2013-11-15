@@ -1,10 +1,10 @@
-var http = require('http');
-var domain = require('domain');
-var client = require('./client');
-var get_doc = require('./get_doc');
-var buy_gem = require('./buy_gem');
+var http          = require('http');
+var domain        = require('domain');
+var client        = require('./client');
+var get_doc       = require('./get_doc');
+var buy_gem       = require('./buy_gem');
 var replyNotFound = require('./response').replyNotFound;
-var replyError = require('./response').replyError;
+var replyError    = require('./response').replyError;
 
 function handleRequest(req, res) {
   console.log('Handling request for ' + req.url);
