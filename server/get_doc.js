@@ -1,25 +1,19 @@
-var parse = require('./request').parse;
-var check = require('./request').check;
-var reply = require('./response').reply;
-var replyError = require('./response').replyError;
-var replyLogin = require('./response').replyLogin;
-var db = require('./db');
+var extractData           = require('./request').extractData;
+var checkStringParameters = require('./request').checkStringParameters;
+var checkPassword         = require('./request').checkPassword;
+var reply                 = require('./response').reply;
 
 exports.handle = function(req, res) {
-  parse(req, 256, function(err, reqData) {
-    if (err) return replyError(res);
-    check(reqData, ['_id', 'pw'], req, function() {
-      db.getDoc(reqData._id, function(err, doc) {
-        if (err) {
-          console.log(err.message);
-          return replyError(res);
-        }
-        if (doc.pw !== reqData.pw) {
-          return replyLogin(res);
-        }
-        reply(res, {doc: doc});
+  extractData(req, 256, function(data) {
+    checkStringParameters(data, ['_id', 'pw'], req, function() {
+      checkPassword(data._id, data.pw, res, function(userDoc) {
+        processRequest(userDoc, res);
       });
     });
   });
 };
+
+function processRequest(userDoc, res) {
+  reply(res, { doc: userDoc });
+}
 
