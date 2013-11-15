@@ -110,7 +110,11 @@ app.util.ajax = function(url, reqData, cb) {
 
 // app state caching through localStorage 
 app.cache.read = function() {
-  app.cache.doc = JSON.parse(localStorage.getItem('doc'));
+  try {
+    app.cache.doc = JSON.parse(localStorage.getItem('doc'));
+  } catch (e) {
+    app.screens.menu.logout();
+  }
 };
 
 app.cache.write = function() {
