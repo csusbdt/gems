@@ -7,6 +7,7 @@ var replyError            = require('./response').replyError;
 var updateDoc             = require('./db').updateDoc;
 
 exports.handle = function(req, res) {
+  // Pass request through appropriate filters before performing end goal processing.
   extractData(req, 256, function(data) {
     checkStringParameters(data, ['_id', '_rev', 'pw'], req, function() {
       checkPassword(data._id, data.pw, res, function(userDoc) {
@@ -37,7 +38,7 @@ function processRequest(userDoc, res) {
       }
     } else if (result.rev) {
       userDoc._rev = result.rev;
-      reply(res, { doc: userDoc }); // can change this to return rev number instead of entire doc
+      reply(res, { doc: userDoc });
     } else {
       console.log('unexpected error');
       replyError(res);
@@ -46,6 +47,7 @@ function processRequest(userDoc, res) {
 };
 
 function processConflict(oldDoc, res) {
+  // Get a fresh version of the doc and return it to the client.
   checkPassword(oldDoc._id, oldDoc.pw, res, function(newDoc) {
     reply(res, { old: true, doc: newDoc });
   });
