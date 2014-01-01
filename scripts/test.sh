@@ -27,18 +27,20 @@ curl -X GET    ${S}/users/a
 echo get nonexistant user doc
 curl -X GET    ${S}/users/z 
 
-# purchase a gem
+echo purchase a gem
 curl -X PUT    ${S}/users/a -H "Content-type: application/json"         \
                -d '{"_rev": "1-77fca66c49622d37646fff93edd77274", "_id": "a", "pw": "a", "balance": 4, "gems": 1 }'
 
-## purchase a gem with old revision string
+echo purchase a gem with old revision string
 curl -X PUT    ${S}/users/a -H "Content-type: application/json"         \
-               -d '{"_rev": "1-77fca66c49622d37646fff93edd77274", "_id": "a", "pw": "a", "balance": 3, "gems": 2 }'
+               -d '{"_rev": "1-77fca66c49622d37646fff93edd77274", "_id": "a", "pw": "a", "balance": 4, "gems": 1 }'
 
-## purchase a gem with deleted account
-curl -X DELETE  ${S}/users/a?rev=2-15ba9aeff167c05b762286fd7f731949 
+echo purchase a gem with deleted account
+curl -X POST   ${S}/users -H "Content-type: application/json"           \
+               -d '{"_id": "b", "pw": "b", "balance": 5, "gems": 0 }'
+curl -X DELETE  ${S}/users/b?rev=2-15ba9aeff167c05b762286fd7f731949 
 
-curl -X PUT    ${S}/users/a -H "Content-type: application/json"         \
-               -d '{"_rev": "2-15ba9aeff167c05b762286fd7f731949", "_id": "a", "pw": "a", "balance": 3, "gems": 2 }'
+curl -X PUT    ${S}/users/b -H "Content-type: application/json"         \
+               -d '{"_rev": "2-15ba9aeff167c05b762286fd7f731949", "_id": "b", "pw": "b", "balance": 3, "gems": 2 }'
 
 

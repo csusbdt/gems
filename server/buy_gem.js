@@ -30,7 +30,7 @@ function processRequest(userDoc, res) {
       replyError(res);
     } else if (result.error) {
       if (result.error === 'conflict') {
-        reply(res, { old: true });
+        processConflict(userDoc, res);
       } else {
         console.log(result.err);
         replyError(res);
@@ -44,4 +44,10 @@ function processRequest(userDoc, res) {
     }
   });
 };
+
+function processConflict(oldDoc, res) {
+  checkPassword(oldDoc._id, oldDoc.pw, res, function(newDoc) {
+    reply(res, { old: true, doc: newDoc });
+  });
+}
 

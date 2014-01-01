@@ -7,7 +7,7 @@ exports.reply = function(res, data) {
   }
   var buf = new Buffer(JSON.stringify(data), 'utf8');
   res.writeHead(200, {
-    'Content-Type': 'application/json; charset=UTF-8',
+    'Content-Type': 'application/json',
     'Content-Length': buf.length,
     'Pragma': 'no-cache',
     'Cache-Control': 'no-cache, no-store'
