@@ -9,4 +9,5 @@ Videos:
 
 - [Overview](http://youtu.be/ZY9M18nJ7IA)
 - [How the client works](http://youtu.be/Ju-Ai55rFAs)
+- [How the server works, part 1](http://youtu.be/TuOsxCl_2wo)
 

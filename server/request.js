@@ -12,7 +12,7 @@ var replyLogin  = require('./response').replyLogin;
 var extractData =
 exports.extractData = function(req, maxBytes, cb) {
   var dataString;
-  req.setEncoding('utf8');
+  req.setEncoding('utf8'); // Causes chunks to be strings.
   req.on('data', function (chunk) {
     if (dataString === undefined) {
       dataString = chunk;
