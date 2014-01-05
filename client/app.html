@@ -154,9 +154,9 @@ app.Screen.prototype.getDiv = function() {
 
 // The show function should only be called by activate.
 app.Screen.prototype.show = function() {
-  if (Screen.currentScreen) Screen.currentScreen.getDiv().style.display = 'none';
+  if (app.Screen.currentScreen) app.Screen.currentScreen.getDiv().style.display = 'none';
   this.getDiv().style.display = 'block';
-  Screen.currentScreen = this;
+  app.Screen.currentScreen = this;
 };
 </script>
 
