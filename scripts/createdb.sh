@@ -13,8 +13,8 @@ curl -X PUT    ${S}/users/_security -H "Content-type: application/json" \
 
 # create 2 users
 curl -X POST   ${S}/users -H "Content-type: application/json"           \
-               -d '{"_id": "a", "pw": "a", "balance": 5, "gems": 0 }'
+               -d "{\"_id\": \"a\", \"pw\": \"a\", \"balance\": 5, \"gems\": 0 }"
 
 curl -X POST   ${S}/users -H "Content-type: application/json"           \
-               -d '{"_id": "b", "pw": "b", "balance": 0, "gems": 0 }'
+               -d "{\"_id\": \"b\", \"pw\": \"b\", \"balance\": 0, \"gems\": 0 }"
 

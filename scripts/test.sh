@@ -15,11 +15,11 @@ curl -X PUT    ${S}/users/_security -H "Content-type: application/json" \
 
 echo create user doc
 curl -X POST   ${S}/users -H "Content-type: application/json"           \
-               -d '{"_id": "a", "pw": "a", "balance": 5, "gems": 0 }'
+               -d "{\"_id\": \"a\", \"pw\": \"a\", \"balance\": 5, \"gems\": 0 }"
 
 echo create existing user doc
 curl -X POST   ${S}/users -H "Content-type: application/json"           \
-               -d '{"_id": "a", "pw": "a", "balance": 0, "gems": 0 }'
+               -d "{\"_id\": \"a\", \"pw\": \"a\", \"balance\": 0, \"gems\": 0 }"
 
 echo get user doc
 curl -X GET    ${S}/users/a 
@@ -29,18 +29,18 @@ curl -X GET    ${S}/users/z
 
 echo purchase a gem
 curl -X PUT    ${S}/users/a -H "Content-type: application/json"         \
-               -d '{"_rev": "1-77fca66c49622d37646fff93edd77274", "_id": "a", "pw": "a", "balance": 4, "gems": 1 }'
+               -d "{\"_rev\": \"1-77fca66c49622d37646fff93edd77274\", \"_id\": \"a\", \"pw\": \"a\", \"balance\": 4, \"gems\": 1 }"
 
 echo purchase a gem with old revision string
 curl -X PUT    ${S}/users/a -H "Content-type: application/json"         \
-               -d '{"_rev": "1-77fca66c49622d37646fff93edd77274", "_id": "a", "pw": "a", "balance": 4, "gems": 1 }'
+               -d "{\"_rev\": \"1-77fca66c49622d37646fff93edd77274\", \"_id\": \"a\", \"pw\": \"a\", \"balance\": 4, \"gems\": 1 }"
 
 echo purchase a gem with deleted account
 curl -X POST   ${S}/users -H "Content-type: application/json"           \
-               -d '{"_id": "b", "pw": "b", "balance": 5, "gems": 0 }'
+               -d "{\"_id\": \"b\", \"pw\": \"b\", \"balance\": 5, \"gems\": 0 }"
 curl -X DELETE  ${S}/users/b?rev=2-15ba9aeff167c05b762286fd7f731949 
 
 curl -X PUT    ${S}/users/b -H "Content-type: application/json"         \
-               -d '{"_rev": "2-15ba9aeff167c05b762286fd7f731949", "_id": "b", "pw": "b", "balance": 3, "gems": 2 }'
+               -d "{\"_rev\": \"2-15ba9aeff167c05b762286fd7f731949\", \"_id\": \"b\", \"pw\": \"b\", \"balance\": 3, \"gems\": 2 }"
 
 
