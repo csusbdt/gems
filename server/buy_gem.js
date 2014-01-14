@@ -29,24 +29,19 @@ function processRequest(userDoc, res) {
     if (err) {
       console.log(err.message);
       replyError(res);
-    } else if (result.error) {
-      if (result.error === 'conflict') {
-        processConflict(userDoc, res);
-      } else {
-        console.log(result.err);
-        replyError(res);
-      }
+    } else if (result.old) {
+      processOld(userDoc, res);
     } else if (result.rev) {
       userDoc._rev = result.rev;
       reply(res, { doc: userDoc });
     } else {
-      console.log('unexpected error');
+      console.log('logic error');
       replyError(res);
     }
   });
 };
 
-function processConflict(oldDoc, res) {
+function processOld(oldDoc, res) {
   // Get a fresh version of the doc and return it to the client.
   checkPassword(oldDoc._id, oldDoc.pw, res, function(newDoc) {
     reply(res, { old: true, doc: newDoc });
