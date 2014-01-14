@@ -12,3 +12,8 @@ Videos:
 - [How the server works, part 1](http://youtu.be/TuOsxCl_2wo)
 - [How the server works, part 2](http://youtu.be/awhe5O_LAUQ)
 
+Note:
+
+After recording these videos, I fixed a bug in buy_gem.js.
+I also added test_old.sh under scripts to test this bug fix.
+
