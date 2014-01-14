@@ -57,6 +57,7 @@ exports.getDoc = function(_id, cb) {
       path: '/users/' + _id, 
       method: 'GET'
   };
+  if (_id.length === 0) cb(null, null);
   send(options, null, function(err, result) {
     if (err) {
       cb(err);
