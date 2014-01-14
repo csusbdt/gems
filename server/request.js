@@ -49,9 +49,7 @@ exports.extractData = function(req, maxBytes, cb) {
 // If any field is missing, assume malicious client and destroy socket.
 exports.checkStringParameters = function(data, fields, req, cb) {
   for(var i = 0; i < fields.length; i++) {
-    if (!data.hasOwnProperty(fields[i]) ||
-      typeof data[fields[i]] !== 'string' ||
-      data[fields[i]].length === 0) {
+    if (!data.hasOwnProperty(fields[i]) || typeof data[fields[i]] !== 'string') {
       console.log('Fields ' + JSON.stringify(fields) + ' bad in ' + JSON.stringify(data));
       req.socket.destroy();
       return;
