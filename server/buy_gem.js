@@ -12,7 +12,11 @@ exports.handle = function(req, res) {
     checkStringParameters(data, ['_id', '_rev', 'pw'], req, function() {
       checkPassword(data._id, data.pw, res, function(userDoc) {
         checkRevision(userDoc, data._rev, res, function() {
+// Uncomment the setTimeout code to test the conflict handling logic.
+// See scripts/test_old.sh for more details.
+//setTimeout(function() {
           processRequest(userDoc, res);
+//}, 10000);
         });
       });
     });
