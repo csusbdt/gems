@@ -190,7 +190,7 @@ app.screens.loading.activate = function() {
     app.screens.loading.activate();
     var username = app.screens.login.usernameBox.value;
     var password = app.screens.login.passwordBox.value;
-    app.util.ajax('get-doc', { _id: username, pw: password }, function(err, resData) {
+    app.util.ajax('get-doc', { id: username, pw: password }, function(err, resData) {
       if (err) {
         app.screens.login.activate();
         app.dialog.display('error');
@@ -228,7 +228,7 @@ app.screens.loading.activate = function() {
 
   app.screens.menu.buyGem = function() {
     app.screens.loading.activate();
-    app.util.ajax('buy-gem', {_id: app.cache.doc._id, _rev: app.cache.doc._rev, pw: app.cache.doc.pw}, function(err, resData) {
+    app.util.ajax('buy-gem', {id: app.cache.doc.id, rev: app.cache.doc.rev, pw: app.cache.doc.pw}, function(err, resData) {
       if (err) {
         app.screens.menu.activate();
         app.dialog.display('error');
@@ -276,7 +276,7 @@ app.onload = function() {
   // try to login user
   app.cache.read();
   if (app.cache.doc) {
-    app.screens.login.usernameBox.value = app.cache.doc._id;
+    app.screens.login.usernameBox.value = app.cache.doc.id;
     app.screens.login.passwordBox.value = app.cache.doc.pw;
     app.screens.login.submit();
   } else {

@@ -90,7 +90,7 @@ exports.checkPassword = function(userId, password, res, cb) {
 // Check document revision.
 // If revision is old, then return current doc to client.
 exports.checkRevision = function(doc, revision, res, cb) {
-  if (doc._rev !== revision) {
+  if (doc.rev !== revision) {
     return reply(res, { 'old': true, doc: doc });
   }
   cb();
