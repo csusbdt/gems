@@ -2,6 +2,7 @@ var extractData           = require('./request').extractData;
 var checkStringParameters = require('./request').checkStringParameters;
 var checkPassword         = require('./request').checkPassword;
 var checkRevision         = require('./request').checkRevision;
+var getUserdoc            = require('./request').getUserdoc;
 var reply                 = require('./response').reply;
 var replyError            = require('./response').replyError;
 var updateDoc             = require('./db').updateDoc;
@@ -10,13 +11,11 @@ exports.handle = function(req, res) {
   // Pass request through appropriate filters before performing end goal processing.
   extractData(req, 256, function(data) {
     checkStringParameters(data, ['id', 'rev', 'pw'], req, function() {
-      checkPassword(data.id, data.pw, res, function(userDoc) {
-        checkRevision(userDoc, data.rev, res, function() {
-// Uncomment the setTimeout code to test the conflict handling logic.
-// See scripts/test_old.sh for more details.
-//setTimeout(function() {
-          processRequest(userDoc, res);
-//}, 10000);
+      getUserdoc(data.id, res, function(userDoc) {
+        checkPassword(userDoc, data.pw, res, function() {
+          checkRevision(userDoc, data.rev, res, function() {
+            processRequest(userDoc, res);
+          });
         });
       });
     });

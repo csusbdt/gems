@@ -8,10 +8,12 @@ The HTML is designed to work with ie8 and higher; [ie7 is not supported](http://
 Note:
 
 The following videos are old. After recording these videos,
-I changed the database from MongoDB to PostreSQL.
-As a result, the code in db.js is completely different.
-All other aspects of the code are unchanged except that 
-I renamed \_id to id and \_rev to rev.
+I made the following changes:
+
+* I changed the database from MongoDB to PostreSQL.
+* I renamed \_id to id and \_rev to rev.
+* I removed the request.checkPassword function because it operates with a side effect.
+  I replaced class to this function with calls to request.getUserdoc and request.checkPassword.
 
 After recording these videos, I also fixed a bug in buy_gem.js
 and added test_old.sh under scripts to test this bug fix.

@@ -71,16 +71,21 @@ exports.checkParameters = function(data, fields, req, cb) {
   cb();
 };
 
-// Retrieve user doc; verify that user exists and password is correct.
-exports.checkPassword = function(userId, password, res, cb) {
+// Check supplied password.  Redirect to login page if bad.
+exports.checkPassword = function(userDoc, password, res, cb) {
+  if (userDoc.pw !== password) {
+      replyLogin(res);
+    } else {
+      cb();
+    }
+};
+
+// Retrieve user doc from database.
+exports.getUserdoc = function(userId, res, cb) {
   db.getDoc(userId, function(err, doc) {
     if (err) {
       console.log(err.message);
       replyError(res);
-    } else if (doc === null) {
-      replyLogin(res);
-    } else if (doc.pw !== password) {
-      replyLogin(res);
     } else {
       cb(doc);
     }
