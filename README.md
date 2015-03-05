@@ -9,8 +9,8 @@ Videos:
 
 - [Overview](http://youtu.be/ZY9M18nJ7IA)
 - [How the client works](http://youtu.be/Ju-Ai55rFAs)
-- [How the server works, part 1](http://youtu.be/TuOsxCl_2wo)
-- [How the server works, part 2](http://youtu.be/awhe5O_LAUQ)
+- [How the server works, part 1](http://youtu.be/TuOsxCl_2wo) The two videos on the server are outdated.  I changed the database from MongoDB to PostreSQL; other aspects of the code are unchanged.
+- [How the server works, part 2](http://youtu.be/awhe5O_LAUQ) 
 
 Note:
 
