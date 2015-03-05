@@ -13,7 +13,7 @@ I made the following changes:
 * I changed the database from MongoDB to PostreSQL.
 * I renamed \_id to id and \_rev to rev.
 * I removed the request.checkPassword function because it operates with a side effect.
-  I replaced class to this function with calls to request.getUserdoc and request.checkPassword.
+  I replaced this function with calls to request.getUserdoc and request.checkPassword.
 
 After recording these videos, I also fixed a bug in buy_gem.js
 and added test_old.sh under scripts to test this bug fix.
