@@ -46,7 +46,7 @@ function processRequest(userDoc, res) {
 
 function processOld(oldDoc, res) {
   // Get a fresh version of the doc and return it to the client.
-  checkPassword(oldDoc.id, oldDoc.pw, res, function(newDoc) {
+  getUserdoc(oldDoc.id, res, function(newDoc) {
     reply(res, { old: true, doc: newDoc });
   });
 }
