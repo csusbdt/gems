@@ -1,6 +1,7 @@
 var http          = require('http');
 var domain        = require('domain');
 var client        = require('./client');
+var db            = require('./db');
 var get_doc       = require('./get_doc');
 var buy_gem       = require('./buy_gem');
 var replyNotFound = require('./response').replyNotFound;
@@ -30,8 +31,10 @@ server.on('request', function(req, res) {
   d.run(function() { handleRequest(req, res); });
 });
 
-client.init(function() {
-  server.listen(5000);
-  console.log('Server started.');
+db.init(function() {
+  client.init(function() {
+    server.listen(5000);
+    console.log('Server started.');
+  });
 });
 
