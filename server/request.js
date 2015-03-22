@@ -86,6 +86,8 @@ exports.getUserdoc = function(userId, res, cb) {
     if (err) {
       console.log(err.message);
       replyError(res);
+    } else if (doc === null) {
+      replyLogin(res);
     } else {
       cb(doc);
     }
